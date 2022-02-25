@@ -28,6 +28,12 @@ def check_paths_exist(args):
             print(f'The provided path for the delineation of the study area is not a file.')
             sys.exit(1)
 
+    catchments_file_path = Path(args.catchments_file_path)
+    if catchments_file_path.exists():
+        if not catchments_file_path.is_file():
+            print(f'The provided path for the catchments delineation is not a file.')
+            sys.exit(1)
+
     path_working_dir = Path(args.working_dir)
     if not path_working_dir.exists():
         path_working_dir.mkdir(parents=True, exist_ok=True)
@@ -41,8 +47,10 @@ def main() -> None:
     parser = argparse.ArgumentParser(description='Preprocess data for hydrological models.')
     parser.add_argument('dem_file_path', type=str,
                         help='path to the DEM file.')
-    parser.add_argument('area_file_path', type=str,
+    parser.add_argument('--area-file-path', type=str,
                         help='path to a file approximately delineating the region of interest.')
+    parser.add_argument('--catchments-file-path', type=str,
+                        help='path to a file delineating the catchments of interest.')
     parser.add_argument('--working-dir', type=str, required=True, metavar='DIR',
                         help='working directory to store intermediate outputs.')
     parser.add_argument('--output-dir', type=str, required=True, metavar='DIR',
@@ -59,6 +67,7 @@ def main() -> None:
 
     crunch.set_dem_file_path(args.dem_file_path)
     crunch.set_area_file_path(args.area_file_path)
+    crunch.set_catchments_file_path(args.catchments_file_path)
     crunch.set_working_dir(args.working_dir)
     crunch.set_output_dir(args.output_dir)
     crunch.set_output_model(args.output_model)
