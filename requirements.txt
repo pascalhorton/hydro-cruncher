@@ -1,0 +1,6 @@
+geopandas~=0.10.0
+rasterio~=1.2.10
+pytest~=6.2.5
+numpy~=1.19.5
+setuptools~=57.0.0
+scipy~=1.7.1
