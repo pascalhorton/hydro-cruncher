@@ -4,6 +4,7 @@ from pysheds.grid import Grid
 import numpy as np
 import geopandas as gpd
 import matplotlib.pyplot as plt
+import rasterio
 
 
 class Cruncher:
@@ -43,31 +44,34 @@ class Cruncher:
 
     def load_dem(self):
         # Read file
+        self.dem = rasterio.open(self.dem_file_path)
+
+    def compute_flow_accumulation(self):
+        # Read file with Pyshed
         if self.dem_file_path.suffix in ['.asc', '.txt']:
-            self.dem = Grid.from_ascii(self.dem_file_path)
-            self.dem_data = self.dem.read_ascii(self.dem_file_path)
+            grid = Grid.from_ascii(self.dem_file_path)
+            dem_data = self.dem.read_ascii(self.dem_file_path)
         elif self.dem_file_path.suffix in ['.tif', '.tiff']:
-            self.dem = Grid.from_raster(self.dem_file_path)
-            self.dem_data = self.dem.read_raster(self.dem_file_path)
+            grid = Grid.from_raster(self.dem_file_path)
+            dem_data = self.dem.read_raster(self.dem_file_path)
         else:
             raise 'DEM file format not supported.'
 
-    def compute_flow_accumulation(self):
         # Fill pits in DEM
-        pit_filled_dem = self.dem.fill_pits(self.dem_data)
+        pit_filled_dem = grid.fill_pits(dem_data)
 
         # Fill depressions in DEM
-        flooded_dem = self.dem.fill_depressions(pit_filled_dem)
+        flooded_dem = grid.fill_depressions(pit_filled_dem)
 
         # Resolve flats in DEM
-        inflated_dem = self.dem.resolve_flats(flooded_dem)
+        inflated_dem = grid.resolve_flats(flooded_dem)
 
         # Compute D8 flow directions from DEM
         dirmap = (64, 128, 1, 2, 4, 8, 16, 32)
-        flow_dir = self.dem.flowdir(inflated_dem, dirmap=dirmap)
+        flow_dir = grid.flowdir(inflated_dem, dirmap=dirmap)
 
         # Compute flow accumulation
-        self.flow_acc = self.dem.accumulation(flow_dir, dirmap=dirmap)
+        self.flow_acc = grid.accumulation(flow_dir, dirmap=dirmap)
 
     def plot_dem(self):
 
